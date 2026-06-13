@@ -43,6 +43,7 @@
             menuBtn:        'Layout',
             load:           'Load',
             save:           'Save',
+            saveAs:         'Save as...',
             rename:         'Rename',
             delete:         'Delete',
             copy:           'Copy',
@@ -50,6 +51,7 @@
             badgePublic:    'Public',
             badgeDefault:   'Default',
             promptSave:     'Layout name:',
+            promptSaveAs:   'New layout name:',
             promptRename:   'New name:',
             confirmDelete:  'Delete selected layout?',
             copyPrefix:     'Copy of ',
@@ -65,6 +67,7 @@
             menuBtn:        'Layout',
             load:           'Carica',
             save:           'Salva',
+            saveAs:         'Salva come...',
             rename:         'Rinomina',
             delete:         'Elimina',
             copy:           'Copia',
@@ -72,6 +75,7 @@
             badgePublic:    'Pubblico',
             badgeDefault:   'Default',
             promptSave:     'Nome del layout:',
+            promptSaveAs:   'Nome del nuovo layout:',
             promptRename:   'Nuovo nome:',
             confirmDelete:  'Eliminare il layout selezionato?',
             copyPrefix:     'Copia di ',
@@ -87,6 +91,7 @@
             menuBtn:        'Diseño',
             load:           'Cargar',
             save:           'Guardar',
+            saveAs:         'Guardar como...',
             rename:         'Renombrar',
             delete:         'Eliminar',
             copy:           'Copiar',
@@ -94,6 +99,7 @@
             badgePublic:    'Público',
             badgeDefault:   'Por defecto',
             promptSave:     'Nombre del diseño:',
+            promptSaveAs:   'Nombre del nuevo diseño:',
             promptRename:   'Nuevo nombre:',
             confirmDelete:  '¿Eliminar el diseño seleccionado?',
             copyPrefix:     'Copia de ',
@@ -109,6 +115,7 @@
             menuBtn:        'Mise en page',
             load:           'Charger',
             save:           'Enregistrer',
+            saveAs:         'Enregistrer sous...',
             rename:         'Renommer',
             delete:         'Supprimer',
             copy:           'Copier',
@@ -116,6 +123,7 @@
             badgePublic:    'Public',
             badgeDefault:   'Par défaut',
             promptSave:     'Nom de la mise en page :',
+            promptSaveAs:   'Nom de la nouvelle mise en page :',
             promptRename:   'Nouveau nom :',
             confirmDelete:  'Supprimer la mise en page sélectionnée ?',
             copyPrefix:     'Copie de ',
@@ -131,6 +139,7 @@
             menuBtn:        'Layout',
             load:           'Laden',
             save:           'Speichern',
+            saveAs:         'Speichern unter...',
             rename:         'Umbenennen',
             delete:         'Löschen',
             copy:           'Kopieren',
@@ -138,6 +147,7 @@
             badgePublic:    'Öffentlich',
             badgeDefault:   'Standard',
             promptSave:     'Name des Layouts:',
+            promptSaveAs:   'Name des neuen Layouts:',
             promptRename:   'Neuer Name:',
             confirmDelete:  'Ausgewähltes Layout löschen?',
             copyPrefix:     'Kopie von ',
@@ -196,7 +206,21 @@
             return Promise.reject(new Error(this.t('errLoad')));
         },
 
-        save: function (name, isPublic) {
+        save: function (id) {
+            var self = this;
+            if (typeof getLayout !== 'function') {
+                return Promise.reject(new Error('getLayout not available'));
+            }
+            return request('PUT', routes.update + id, { layout_data: getLayout() })
+                .then(function (layout) {
+                    var idx = self._layouts.findIndex(function(l) { return l.id == id; });
+                    if (idx !== -1) self._layouts[idx] = layout;
+                    self._dispatchEvent('raccoon-layouts:saved', layout);
+                    return layout;
+                });
+        },
+
+        saveAs: function (name, isPublic) {
             var self = this;
             if (typeof getLayout !== 'function') {
                 return Promise.reject(new Error('getLayout not available'));
@@ -208,7 +232,7 @@
                 is_public:   isPublic || false
             }).then(function (layout) {
                 self._layouts.push(layout);
-                self._dispatchEvent('raccoon-layouts:saved', layout);
+                self._dispatchEvent('raccoon-layouts:saved-as', layout);
                 return layout;
             });
         },
@@ -269,6 +293,9 @@
                 .then(function (layouts) {
                     self._layouts = layouts;
                     self._dispatchEvent('raccoon-layouts:loaded', layouts);
+                    if (self._serverDefaultLayout && typeof setLayout === 'function') {
+                        setLayout(self._serverDefaultLayout);
+                    }
                 })
                 .catch(function (err) {
                     console.warn('RaccoonLayouts: could not load layouts', err);

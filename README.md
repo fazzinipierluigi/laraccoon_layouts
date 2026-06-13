@@ -126,18 +126,19 @@ Il dropdown emette markup con classi BEM `raccoon-layouts__*`. Nessuno stile inl
 | `raccoon-layouts__select` | `<select>` | Dropdown per la selezione del layout |
 | `raccoon-layouts__option` | `<option>` | Singola voce nel dropdown |
 | `raccoon-layouts__option--placeholder` | `<option>` | Voce "Layout Standard" (nessun layout caricato) |
-| `raccoon-layouts__actions` | `<div>` | Wrapper dei bottoni azione |
-| `raccoon-layouts__btn` | `<button>` | Classe base per tutti i bottoni |
-| `raccoon-layouts__btn--load` | `<button>` | Bottone Carica |
-| `raccoon-layouts__btn--save` | `<button>` | Bottone Salva |
-| `raccoon-layouts__btn--rename` | `<button>` | Bottone Rinomina |
-| `raccoon-layouts__btn--delete` | `<button>` | Bottone Elimina |
-| `raccoon-layouts__btn--copy` | `<button>` | Bottone Copia |
-| `raccoon-layouts__btn--set-default` | `<button>` | Bottone Imposta Default |
-| `raccoon-layouts__badges` | `<div>` | Contenitore badge (visibile solo se layout selezionato ha badge attivi) |
-| `raccoon-layouts__badge` | `<span>` | Classe base badge |
-| `raccoon-layouts__badge--public` | `<span>` | Badge "Pubblico" (visibile se `is_public = true`) |
-| `raccoon-layouts__badge--default` | `<span>` | Badge "Default" (visibile se `is_default = true`) |
+| `raccoon-layouts__menu-container` | `<div>` | Wrapper del menu a tendina azioni |
+| `raccoon-layouts__btn--menu` | `<button>` | Bottone trigger del menu |
+| `raccoon-layouts__menu` | `<ul>` | Menu a tendina delle azioni |
+| `raccoon-layouts__menu-item` | `<li>` | Classe base voce menu |
+| `raccoon-layouts__menu-item--save` | `<li>` | Voce "Salva" (aggiorna layout corrente; disabilitata su Standard) |
+| `raccoon-layouts__menu-item--save-as` | `<li>` | Voce "Salva come" (crea nuovo layout; sempre abilitata) |
+| `raccoon-layouts__menu-item--rename` | `<li>` | Voce "Rinomina" |
+| `raccoon-layouts__menu-item--copy` | `<li>` | Voce "Copia" |
+| `raccoon-layouts__menu-item--set-default` | `<li>` | Voce "Imposta Default" |
+| `raccoon-layouts__menu-item--delete` | `<li>` | Voce "Elimina" |
+| `raccoon-layouts__menu-item--danger` | `<li>` | Modificatore per azioni distruttive |
+| `raccoon-layouts__menu-item--needs-selection` | `<li>` | Modificatore: voce disabilitata (`aria-disabled`) se nessun layout selezionato |
+| `raccoon-layouts__menu-divider` | `<li>` | Separatore visivo nel menu |
 
 ### Esempio CSS
 
@@ -170,27 +171,13 @@ Il dropdown emette markup con classi BEM `raccoon-layouts__*`. Nessuno stile inl
     background: #e8e8e8;
 }
 
-.raccoon-layouts__btn--delete {
+.raccoon-layouts__menu-item--danger {
     color: #c00;
-    border-color: #c00;
 }
 
-.raccoon-layouts__badge {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 0.75em;
-    font-weight: bold;
-}
-
-.raccoon-layouts__badge--public {
-    background: #dff0d8;
-    color: #3c763d;
-}
-
-.raccoon-layouts__badge--default {
-    background: #d9edf7;
-    color: #31708f;
+.raccoon-layouts__menu-item[aria-disabled="true"] {
+    opacity: 0.4;
+    pointer-events: none;
 }
 ```
 
@@ -264,16 +251,32 @@ Oppure con un hash già calcolato:
 ### Salvataggio programmatico
 
 ```javascript
-// Salva il layout corrente con un nome specifico
-RaccoonLayouts.save('Layout Mensile').then(function(layout) {
-    console.log('Salvato con ID', layout.id);
+// Aggiorna il layout correntemente selezionato (sovrascrive layout_data)
+var id = 12;
+RaccoonLayouts.save(id).then(function(layout) {
+    console.log('Aggiornato:', layout.name);
 });
 
-// Salva come layout pubblico
-RaccoonLayouts.save('Layout Condiviso', true);
+// Crea un nuovo layout con nome specifico
+RaccoonLayouts.saveAs('Layout Mensile').then(function(layout) {
+    console.log('Creato con ID', layout.id);
+});
+
+// Crea un nuovo layout pubblico
+RaccoonLayouts.saveAs('Layout Condiviso', true);
 ```
 
 ### Risposta agli eventi
+
+| Evento | `e.detail` | Quando |
+|--------|-----------|--------|
+| `raccoon-layouts:loaded` | `layout[]` | Lista layout fetchata all'init |
+| `raccoon-layouts:saved` | oggetto layout | Layout corrente aggiornato via `save(id)` |
+| `raccoon-layouts:saved-as` | oggetto layout | Nuovo layout creato via `saveAs(name)` |
+| `raccoon-layouts:renamed` | oggetto layout | Layout rinominato |
+| `raccoon-layouts:copied` | oggetto layout | Layout duplicato |
+| `raccoon-layouts:default-set` | oggetto layout | Default impostato |
+| `raccoon-layouts:deleted` | `{ id }` | Layout eliminato |
 
 ```javascript
 document.addEventListener('raccoon-layouts:loaded', function(e) {
@@ -281,7 +284,11 @@ document.addEventListener('raccoon-layouts:loaded', function(e) {
 });
 
 document.addEventListener('raccoon-layouts:saved', function(e) {
-    alert('Layout "' + e.detail.name + '" salvato!');
+    console.log('Layout aggiornato:', e.detail.name);
+});
+
+document.addEventListener('raccoon-layouts:saved-as', function(e) {
+    console.log('Nuovo layout creato con ID', e.detail.id);
 });
 
 document.addEventListener('raccoon-layouts:deleted', function(e) {
@@ -381,7 +388,7 @@ Lista i layout disponibili per la pagina: quelli dell'utente corrente + quelli p
 
 ### POST `/raccoon-layouts/store`
 
-Salva un nuovo layout.
+Crea un nuovo layout (corrisponde a `saveAs` nel JS).
 
 **Body:**
 ```json
@@ -412,7 +419,7 @@ Salva un nuovo layout.
 
 ### PUT `/raccoon-layouts/{id}`
 
-Rinomina o aggiorna un layout esistente (solo proprietario).
+Aggiorna un layout esistente — nome, `layout_data`, visibilità (solo proprietario). Usato sia da "Salva" (aggiorna `layout_data`) che da "Rinomina" (aggiorna `name`).
 
 **Body (tutti i campi opzionali):**
 ```json
@@ -450,7 +457,7 @@ Imposta il layout come default per l'utente corrente su quella pagina. Rimuove a
 
 ### POST `/raccoon-layouts/{id}/copy`
 
-Duplica un layout (proprio o pubblico) con nome "Copia di {nome originale}". La copia è sempre privata e non-default.
+Duplica un layout (proprio o pubblico). Il nome della copia usa il prefisso localizzato (es. "Copy of", "Copia di") configurato via `i18n.copyPrefix`. La copia è sempre privata e non-default.
 
 **Risposta 201:**
 ```json

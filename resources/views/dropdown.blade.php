@@ -11,11 +11,6 @@
         </select>
     </div>
 
-    <div class="raccoon-layouts__badges" id="raccoon-layouts-badges" style="display:none;">
-        <span class="raccoon-layouts__badge raccoon-layouts__badge--public"  id="raccoon-layouts-badge-public"></span>
-        <span class="raccoon-layouts__badge raccoon-layouts__badge--default" id="raccoon-layouts-badge-default"></span>
-    </div>
-
     <div class="raccoon-layouts__menu-container" id="raccoon-layouts-menu-container">
         <button type="button"
                 class="raccoon-layouts__btn raccoon-layouts__btn--menu"
@@ -27,8 +22,10 @@
         </button>
 
         <ul class="raccoon-layouts__menu" id="raccoon-layouts-menu" role="menu" style="display:none;">
-            <li class="raccoon-layouts__menu-item raccoon-layouts__menu-item--save"
+            <li class="raccoon-layouts__menu-item raccoon-layouts__menu-item--save raccoon-layouts__menu-item--needs-selection"
                 id="raccoon-layouts-item-save" role="menuitem" tabindex="-1"></li>
+            <li class="raccoon-layouts__menu-item raccoon-layouts__menu-item--save-as"
+                id="raccoon-layouts-item-save-as" role="menuitem" tabindex="-1"></li>
             <li class="raccoon-layouts__menu-item raccoon-layouts__menu-item--rename raccoon-layouts__menu-item--needs-selection"
                 id="raccoon-layouts-item-rename" role="menuitem" tabindex="-1"></li>
             <li class="raccoon-layouts__menu-item raccoon-layouts__menu-item--copy raccoon-layouts__menu-item--needs-selection"
@@ -48,9 +45,6 @@
     function t(key) { return rl() ? rl().t(key) : key; }
 
     var select      = document.getElementById('raccoon-layouts-select');
-    var badgesEl    = document.getElementById('raccoon-layouts-badges');
-    var badgePublic = document.getElementById('raccoon-layouts-badge-public');
-    var badgeDef    = document.getElementById('raccoon-layouts-badge-default');
     var trigger     = document.getElementById('raccoon-layouts-menu-trigger');
     var menu        = document.getElementById('raccoon-layouts-menu');
     var menuLabel   = document.getElementById('raccoon-layouts-menu-label');
@@ -61,9 +55,8 @@
     function applyTranslations() {
         placeholder.textContent            = t('placeholder');
         menuLabel.textContent              = t('menuBtn');
-        badgePublic.textContent            = t('badgePublic');
-        badgeDef.textContent               = t('badgeDefault');
-        document.getElementById('raccoon-layouts-item-save').textContent       = t('save');
+        document.getElementById('raccoon-layouts-item-save').textContent        = t('save');
+        document.getElementById('raccoon-layouts-item-save-as').textContent    = t('saveAs');
         document.getElementById('raccoon-layouts-item-rename').textContent     = t('rename');
         document.getElementById('raccoon-layouts-item-copy').textContent       = t('copy');
         document.getElementById('raccoon-layouts-item-set-default').textContent= t('setDefault');
@@ -98,21 +91,7 @@
             select.value = defaultId;
         }
 
-        updateBadges();
         updateMenuItemStates();
-    }
-
-    function updateBadges() {
-        var opt = select.options[select.selectedIndex];
-        if (!opt || !opt.value) {
-            badgesEl.style.display = 'none';
-            return;
-        }
-        var isPublic  = opt.dataset.isPublic  === '1';
-        var isDefault = opt.dataset.isDefault === '1';
-        badgePublic.style.display = isPublic  ? '' : 'none';
-        badgeDef.style.display    = isDefault ? '' : 'none';
-        badgesEl.style.display = (isPublic || isDefault) ? '' : 'none';
     }
 
     function updateMenuItemStates() {
@@ -124,7 +103,6 @@
     }
 
     select.addEventListener('change', function () {
-        updateBadges();
         updateMenuItemStates();
         var id = select.value;
         if (!id) {
@@ -172,9 +150,17 @@
     }
 
     onItem('raccoon-layouts-item-save', function () {
-        var name = prompt(t('promptSave'));
+        var id = select.value;
+        if (!id) return;
+        rl() && rl().save(id).catch(function(e) {
+            alert(t('errSave') + (e.message || JSON.stringify(e)));
+        });
+    });
+
+    onItem('raccoon-layouts-item-save-as', function () {
+        var name = prompt(t('promptSaveAs'));
         if (!name) return;
-        rl() && rl().save(name).catch(function(e) {
+        rl() && rl().saveAs(name).catch(function(e) {
             alert(t('errSave') + (e.message || JSON.stringify(e)));
         });
     });
@@ -218,13 +204,13 @@
 
     document.addEventListener('raccoon-layouts:loaded',      function (e) { buildOptions(e.detail, false); });
     document.addEventListener('raccoon-layouts:saved',       function ()  { if (rl()) buildOptions(rl()._layouts, true); });
+    document.addEventListener('raccoon-layouts:saved-as',    function ()  { if (rl()) buildOptions(rl()._layouts, false); });
     document.addEventListener('raccoon-layouts:renamed',     function ()  { if (rl()) buildOptions(rl()._layouts, true); });
     document.addEventListener('raccoon-layouts:copied',      function ()  { if (rl()) buildOptions(rl()._layouts, true); });
     document.addEventListener('raccoon-layouts:default-set', function ()  { if (rl()) buildOptions(rl()._layouts, true); });
     document.addEventListener('raccoon-layouts:deleted',     function ()  {
         if (rl()) buildOptions(rl()._layouts, false);
         select.value = '';
-        updateBadges();
         updateMenuItemStates();
     });
 })();
