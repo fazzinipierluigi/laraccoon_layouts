@@ -2,7 +2,7 @@
 
 namespace Fazzinipierluigi\LaraccoonLayouts\Http\Controllers;
 
-use Fazzinipierluigi\LaraccoonLayouts\Models\RaccoonLayout;
+use Fazzinipierluigi\LaraccoonLayouts\Models\DatagridLayout;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -13,7 +13,7 @@ class LayoutController extends Controller
     {
         $userId = auth()->id();
 
-        $layouts = RaccoonLayout::where('page_key', $pageKey)
+        $layouts = DatagridLayout::where('page_key', $pageKey)
             ->where(function ($q) use ($userId) {
                 $q->where('user_id', $userId)
                   ->orWhere('is_public', true);
@@ -33,7 +33,7 @@ class LayoutController extends Controller
             'is_public' => 'boolean',
         ]);
 
-        $layout = RaccoonLayout::create([
+        $layout = DatagridLayout::create([
             'user_id' => auth()->id(),
             'page_key' => $data['page_key'],
             'name' => $data['name'],
@@ -47,7 +47,7 @@ class LayoutController extends Controller
 
     public function update(Request $request, int $id): JsonResponse
     {
-        $layout = RaccoonLayout::where('id', $id)
+        $layout = DatagridLayout::where('id', $id)
             ->where('user_id', auth()->id())
             ->firstOrFail();
 
@@ -64,7 +64,7 @@ class LayoutController extends Controller
 
     public function destroy(int $id): JsonResponse
     {
-        $layout = RaccoonLayout::where('id', $id)
+        $layout = DatagridLayout::where('id', $id)
             ->where('user_id', auth()->id())
             ->firstOrFail();
 
@@ -75,11 +75,11 @@ class LayoutController extends Controller
 
     public function setDefault(int $id): JsonResponse
     {
-        $layout = RaccoonLayout::where('id', $id)
+        $layout = DatagridLayout::where('id', $id)
             ->where('user_id', auth()->id())
             ->firstOrFail();
 
-        RaccoonLayout::where('user_id', auth()->id())
+        DatagridLayout::where('user_id', auth()->id())
             ->where('page_key', $layout->page_key)
             ->where('is_default', true)
             ->update(['is_default' => false]);
@@ -91,14 +91,14 @@ class LayoutController extends Controller
 
     public function copy(int $id): JsonResponse
     {
-        $layout = RaccoonLayout::where('id', $id)
+        $layout = DatagridLayout::where('id', $id)
             ->where(function ($q) {
                 $q->where('user_id', auth()->id())
                   ->orWhere('is_public', true);
             })
             ->firstOrFail();
 
-        $copy = RaccoonLayout::create([
+        $copy = DatagridLayout::create([
             'user_id' => auth()->id(),
             'page_key' => $layout->page_key,
             'name' => 'Copia di ' . $layout->name,

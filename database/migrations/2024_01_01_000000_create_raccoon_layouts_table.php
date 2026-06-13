@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('raccoon_layouts', function (Blueprint $table) {
+        Schema::create('datagrid_layouts', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('page_key', 40); // SHA1 hash
@@ -25,6 +25,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('raccoon_layouts');
+        Schema::dropIfExists('datagrid_layouts');
     }
 };

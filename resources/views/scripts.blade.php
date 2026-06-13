@@ -1,5 +1,5 @@
 @php
-    use Fazzinipierluigi\LaraccoonLayouts\Models\RaccoonLayout;
+    use Fazzinipierluigi\LaraccoonLayouts\Models\DatagridLayout;
 
     $strategy = config('raccoon_layouts.page_key_strategy', 'url');
     if ($strategy === 'route_name') {
@@ -13,7 +13,7 @@
 
     $serverDefaultLayout = null;
     if (auth()->check()) {
-        $def = RaccoonLayout::where('user_id', auth()->id())
+        $def = DatagridLayout::where('user_id', auth()->id())
             ->where('page_key', $pageKey)
             ->where('is_default', true)
             ->first(['layout_data']);

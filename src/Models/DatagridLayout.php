@@ -5,8 +5,10 @@ namespace Fazzinipierluigi\LaraccoonLayouts\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class RaccoonLayout extends Model
+class DatagridLayout extends Model
 {
+    protected $table = 'datagrid_layouts';
+
     protected $fillable = [
         'user_id',
         'page_key',
