@@ -293,9 +293,6 @@
                 .then(function (layouts) {
                     self._layouts = layouts;
                     self._dispatchEvent('raccoon-layouts:loaded', layouts);
-                    if (self._serverDefaultLayout && typeof setLayout === 'function') {
-                        setLayout(self._serverDefaultLayout);
-                    }
                 })
                 .catch(function (err) {
                     console.warn('RaccoonLayouts: could not load layouts', err);
