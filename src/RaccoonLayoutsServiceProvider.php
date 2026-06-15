@@ -53,9 +53,6 @@ class RaccoonLayoutsServiceProvider extends ServiceProvider
                 __DIR__ . '/../database/migrations/' => database_path('migrations'),
             ], 'raccoon-layouts-migrations');
 
-            $this->publishes([
-                __DIR__ . '/../resources/views/' => resource_path('views/vendor/raccoon-layouts'),
-            ], 'raccoon-layouts-views');
         }
     }
 }

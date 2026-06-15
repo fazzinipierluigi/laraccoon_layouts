@@ -29,14 +29,6 @@ php artisan vendor:publish --tag=raccoon-layouts-migrations
 php artisan migrate
 ```
 
-### Pubblicazione delle view (opzionale, per personalizzare HTML/JS)
-
-```bash
-php artisan vendor:publish --tag=raccoon-layouts-views
-```
-
-Le view vengono copiate in `resources/views/vendor/raccoon-layouts/`.
-
 ---
 
 ## 2. Registrazione dello stack scripts nel layout base
