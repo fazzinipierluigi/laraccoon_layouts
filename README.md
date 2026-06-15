@@ -238,7 +238,7 @@ Oppure con un hash già calcolato:
 @raccoonLayoutsScripts
 ```
 
-> `@raccoonLayoutsScripts` deve essere incluso **dopo** l'inizializzazione di Raccoon Tables, perché utilizza le funzioni globali `getLayout()` e `loadLayout()` esposte dal plugin.
+> `@raccoonLayoutsScripts` deve essere incluso **dopo** l'inizializzazione di Raccoon Tables, perché utilizza le funzioni globali `getLayout()`, `setLayout()` e `resetLayout()` esposte dal plugin.
 
 ### Salvataggio programmatico
 
